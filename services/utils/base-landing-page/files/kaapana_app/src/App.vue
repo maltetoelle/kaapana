@@ -3,7 +3,7 @@
     <v-app id="inspire">
       <notifications position="bottom right" width="20%" :duration="5000" />
       <v-navigation-drawer clipped v-model="drawer" app mobile-breakpoint="0">
-        <v-list dense>
+        <v-list dense :style="{ height: '100%' }">
           <v-list-item :to="'/'">
             <v-list-item-icon>
               <v-icon>mdi-home</v-icon>
@@ -100,6 +100,13 @@
             </v-list-item-content>
             <v-list-item-icon></v-list-item-icon>
           </v-list-item>
+          <v-card :style='{ position: "absolute", bottom: "10px", left: "10px", right: "10px", width: "90%", padding: "5px" }'
+            href="https://www.kaapana.ai">
+            <div :style="{ 'display': 'flex', 'justify-content': 'center', 'align-items': 'center' }">
+              <span :style="{ 'marginRight': '10px' }">powered by</span>
+              <img :style="{ 'marginLeft': '10px' }" src='./assets/img/kaapana.png' alt='Vuetify' width='35%' />
+            </div>
+          </v-card>
         </v-list>
       </v-navigation-drawer>
       <v-app-bar color="primary" dark dense clipped-left app>
@@ -220,7 +227,7 @@
       </v-main>
       <v-footer color="primary" app inset>
         <span class="white--text">
-          &copy; DKFZ 2018 - DKFZ 2023 | {{ commonData.version }}
+          &copy; FLOTO 2023 | DKFZ 2018 - DKFZ 2023 | {{ commonData.version }}
         </span>
       </v-footer>
     </v-app>
