@@ -36,6 +36,15 @@ const routes = [
         },
     },
     {
+        name: 'application',
+        path: '/application/:releaseName',
+        component: () => import('@/views/Application.vue'),
+        title: 'Application',
+        permissions: {
+            isPublic: false,
+        },
+    },
+    {
         name: 'workflow-execution',
         path: '/workflow-execution',
         component: () => import('@/views/WorkflowExecution.vue'),

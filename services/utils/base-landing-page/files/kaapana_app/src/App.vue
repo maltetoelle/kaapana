@@ -89,6 +89,20 @@
               <v-list-item-title v-text="subSection.label"></v-list-item-title>
             </v-list-item>
           </v-list-group>
+          <v-list-group v-if="this.applications.length > 0" prepend-icon="mdi-application-outline" :value="false">
+            <template v-slot:activator>
+              <v-list-item-title>Applications</v-list-item-title>
+            </template>
+            <v-list-item v-for="item in applications" :key="item.releaseName" :to="'/application/' + item.releaseName"
+              :value="item.releaseName" v-if="isAuthenticated">
+              <v-list-item-action></v-list-item-action>
+              <v-list-item-title>{{ item.releaseName }}</v-list-item-title>
+              <v-list-item-icon>
+                <v-img v-if="item.icon !== ''" :width="20" cover :src="item.icon"></v-img>
+                <v-icon v-if="item.icon === ''">mdi-application-outline</v-icon>
+              </v-list-item-icon>
+            </v-list-item>
+          </v-list-group>
           <v-list-item :to="'/extensions'" v-if="isAuthenticated">
             <v-list-item-action>
               <!-- <v-icon>mdi-view-comfy</v-icon> -->
@@ -255,6 +269,8 @@ export default Vue.extend({
     drawer: true,
     federatedBackendAvailable: false,
     settings: settings,
+    applications: [] as any,
+    applicationCheckInterval: 0,
   }),
   computed: {
     ...mapGetters([
@@ -282,6 +298,72 @@ export default Vue.extend({
       this.settings["navigationMode"] = v;
       localStorage["settings"] = JSON.stringify(this.settings);
     },
+    getApplications() {
+      let params = {
+        repo: "kaapana-public",
+      };
+      kaapanaApiService
+        .helmApiGet("/extensions", params)
+        .then((response: any) => {
+
+          let applications = response.data.filter((i: any) => {
+            return i.kind === "application" && this.checkDeploymentReady(i) === true && i.successful !== 'pending';
+          });
+          
+          let hasSameApplications = (this.applications.length === applications.length) && this.applications.every((element: any, index: number) => element.releaseName === applications[index].releaseName);
+
+          if (!hasSameApplications) {
+            Promise.all(applications.map(async (application: any) => await this.getApplicationIconURL(application.links[0])))
+              .then(urls => urls.map((url: any, i: number) => { applications[i].icon = url })).then(_ => {
+
+                console.log("APPLICATIONS CHANGED", applications.length, applications);
+
+                this.applications = applications;
+              });
+          }
+        })
+        .catch((err: any) => {
+          this.applications = [];
+          console.log(err);
+        });
+    },
+    async getApplicationIconURL(link: string) {
+      // Try "/favicon.ico"
+      try {
+        // Request the favicon
+        await request.get(link + "/favicon.ico");
+        // Request did not throw an error so return the link
+        return link + "/favicon.ico";
+      } catch (error) {
+        // Try link elements in head with rel attributes containing icons
+        let response = await request.get(link);
+        
+        // Parse the page to get the icon
+        const parser = new DOMParser();
+        const htmlDoc = parser.parseFromString(response.data, 'text/html');
+
+        // Extract the icon from page head
+        let icon = htmlDoc.head.querySelector('link[rel*="icon"]');
+        return icon ? (icon.getAttribute("href") ? icon.getAttribute("href") : "") : "";
+      }
+    },
+    checkDeploymentReady(item: any) {
+      if (item["multiinstallable"] == "yes" && item["chart_name"] == item["releaseName"]) {
+        return false
+      }
+      if (item["available_versions"][item.version]["deployments"].length > 0) {
+        return item["available_versions"][item.version]["deployments"][0].ready
+      }
+      return false
+    },
+    startApplicationsInterval() {
+      this.applicationCheckInterval = window.setInterval(() => {
+        this.getApplications();
+      }, 5000);
+    },
+    clearApplicationsInterval() {
+      window.clearInterval(this.applicationCheckInterval);
+    },
     login() {
       this.$store
         .dispatch(LOGIN)
@@ -289,6 +371,9 @@ export default Vue.extend({
     },
     logout() {
       this.$store.dispatch(LOGOUT);
+    },
+    beforeDestroy() {
+      this.clearApplicationsInterval();
     },
   },
   beforeCreate() {
@@ -299,6 +384,8 @@ export default Vue.extend({
     }
   },
   mounted() {
+    this.getApplications();
+    this.startApplicationsInterval();
     this.settings = JSON.parse(localStorage["settings"]);
     this.$vuetify.theme.dark = this.settings["darkMode"];
     request
