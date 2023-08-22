@@ -21,7 +21,8 @@ spec:
         image: "{{ .Values.global.registry_url }}/landing-page-kaapana:{{ .Values.global.kaapana_build_version  }}"
         imagePullPolicy:  {{ .Values.global.pull_policy_images }}
 {{- if .Values.global.dev_files }}
-        command: ["/usr/local/bin/npm", "run", "serve"]
+        # command: ["sh"]
+        # args: ["/kaapana/app/dev.sh"]
  {{- end }}
         ports:
         - name: landing-http

@@ -9,6 +9,12 @@ WORKDIR /kaapana/app
 RUN npm run build
 
 ###############################
+######### Development ##########
+###############################
+
+# ENTRYPOINT ["/usr/local/bin/npm", "run", "serve"]
+
+###############################
 ######### Production ##########
 ###############################
 FROM docker.io/nginx:1.23.3-alpine
