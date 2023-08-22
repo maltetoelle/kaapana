@@ -10,7 +10,7 @@ metadata:
     type: local
 spec:
   capacity:
-    storage: "1Mi"
+    storage: "1Gi"
 {{- if .Values.global.enable_nfs }}
   storageClassName: nfs
   accessModes:
@@ -41,7 +41,7 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: "1Mi"
+      storage: "1Gi"
   volumeName: "landing-dev-pv-volume"
 {{- end }}
 ---

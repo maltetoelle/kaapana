@@ -21,8 +21,7 @@ spec:
         image: "{{ .Values.global.registry_url }}/landing-page-kaapana:{{ .Values.global.kaapana_build_version  }}"
         imagePullPolicy:  {{ .Values.global.pull_policy_images }}
 {{- if .Values.global.dev_files }}
-        command: ["sh"]
-        args: ["/kaapana/app/dev.sh"]
+        command: ["/usr/local/bin/npm", "run", "serve"]
  {{- end }}
         ports:
         - name: landing-http
@@ -36,14 +35,14 @@ spec:
         resources:
 {{- if .Values.global.dev_files }}
           requests:
-            memory: 10Gi
+            memory: 10Mi
           limits:
             memory: 10Gi
  {{- else }}
           requests:
             memory: 10Mi
           limits:
-            memory: 10Mi
+            memory: 10Gi
  {{- end }}
         volumeMounts:
           - name: common-data-file
